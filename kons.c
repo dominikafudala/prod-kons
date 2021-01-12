@@ -57,13 +57,15 @@ kluczsem=ftok(".",'C');
 //przylaczenie pam. dzielonej-- shmat   
 pam = (int*)shmat(shmID, NULL, 0);
 
-//sekcja krytyczna -- semafor -- operacje na pamięci dzielonej
-waitSem(semID, 0, 0);
 
 //odbieranie/wysylanie odpowiednich komunikatow +
 // odczyt z bufora  elementu o  indeksie odczyt (pam. dzielona)
 msgrcv(msgID, &komunikat, sizeof(komunikat.mvalue), PELNY, 0);
 printf("KONSUMENT odebrano: (1 - PUSTY 2 - PELNY) %d\n", komunikat.mtype);
+
+//sekcja krytyczna -- semafor -- operacje na pamięci dzielonej
+waitSem(semID, 0, 0);
+
 
 printf("KONSUMENT pam[%d]: %d\n", odczyt, pam[odczyt]);
 
