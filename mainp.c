@@ -9,7 +9,7 @@
 #include <sys/wait.h>
 
 
-#define P 10   // liczba procesow prod i kons
+#define P 12  // liczba procesow prod i kons
 #define MAX 10  //rozmiar buforu
 #define MAX2 12 // + dwa pola na indeksy zapis/odczyt
 #define PUSTY 1 //typ komunikatu
@@ -43,7 +43,7 @@ int main()
 	{printf("blad kolejki komunikatow\n"); exit(1);}
 
    kluczsem=ftok(".",'C');
-   semID= semget(kluczsem, 1, IPC_CREAT | IPC_EXCL | 0666);
+   semID= semget(kluczsem, 1, IPC_CREAT | 0666);
    if ( semID == -1)
    {
       perror("Blad semget ");
@@ -54,6 +54,7 @@ int main()
       perror("Blad semctl ");
       exit(1);
    }
+   
 
    
 

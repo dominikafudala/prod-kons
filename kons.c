@@ -5,6 +5,7 @@
 #include <sys/shm.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include "operacje.h"
 
 
 struct bufor{
@@ -22,12 +23,12 @@ int *pam;
 
 int main()
 {
-   key_t klucz, kluczm;
-   int msgID, shmID;
+   key_t klucz, kluczm, kluczsem;
+   int msgID, shmID, semID;
    int i;
    struct bufor komunikat;
 
-   printf("konsument--------------------------------\n");
+   //printf("konsument--------------------------------\n");
 
 
 //uzyskanie dosepu do kolejki komunikatow
@@ -42,26 +43,44 @@ if (msgID==-1)
  
 //uzyskanie dosepu do pamieci dzielonej
 kluczm=ftok(".",'B');
-shmID=shmget(kluczm, MAX2*sizeof(int), IPC_CREAT|0666);//tworzenie pam. dz.
+shmID=shmget(kluczm, MAX2*sizeof(int), IPC_CREAT|0666);//tworzenie pam. dz
+
+//semafory
+kluczsem=ftok(".",'C');
+   semID= semget(kluczsem, 1, IPC_CREAT | 0666);
+   if ( semID == -1)
+   {
+      perror("Blad semget ");
+      exit(1);
+   }
 
 //przylaczenie pam. dzielonej-- shmat   
 pam = (int*)shmat(shmID, NULL, 0);
 
 //sekcja krytyczna -- semafor -- operacje na pamięci dzielonej
+waitSem(semID, 0, 0);
+
 //odbieranie/wysylanie odpowiednich komunikatow +
 // odczyt z bufora  elementu o  indeksie odczyt (pam. dzielona)
 msgrcv(msgID, &komunikat, sizeof(komunikat.mvalue), PELNY, 0);
-printf("KONSUMENT odebrano: %d\n", komunikat.mtype);
+printf("KONSUMENT odebrano: (1 - PUSTY 2 - PELNY) %d\n", komunikat.mtype);
 
 printf("KONSUMENT pam[%d]: %d\n", odczyt, pam[odczyt]);
+
+//koniec sekcji krytycznej
+signalSem(semID, 0);
 
 komunikat.mtype=PUSTY;
 msgsnd(msgID,&komunikat,sizeof(komunikat.mvalue),0);
 
+
 //modyfikacja indeksu do odczytu
 odczyt = (odczyt+1)%MAX;
 
-//msgrcv -- odbiór komunikatu 
 
+// //msgrcv -- odbiór komunikatu 
+//odlaczanie pamieci dzielonej
+//shmdt(pam);
+exit(0);
 }
 
